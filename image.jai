@@ -1,5 +1,5 @@
 // Gamma corrected (linear) premultiplied alpha format loaded image; RGBA8 format (32bits)
-Image :: struct {
+Image :: struct @Register {
     width: u32;
     height: u32;
 
@@ -7,12 +7,85 @@ Image :: struct {
 
     data: *u8; @NonSerializeField
 
-    finalize_descriptor :: (image: *Image) -> bool {
-        if image.height <= 0 return false;
+    finalize_descriptor :: (image: *Image) {
+        if image.height <= 0 || image.height <= 0 {
+            image.width_over_height = 0.0;
+        };
 
         image.width_over_height = cast(float) image.width / cast(float) image.height;
         image.data = null;
+    }
 
+    post_load :: (image: *Image) {
+        // TODO: Generate GAPI texture handle
+    }
+
+    unload :: (image: *Image) {
+        // TODO: Free GAPI texture handle
+    }
+
+    serialize_payload :: (image: *Image) -> Blob, bool {
+        if image == null {
+            assert(false, "Image payload serialization requires an image.");
+            return .{}, false;
+        }
+
+        size, valid := image_payload_size(image.*);
+        if !valid {
+            assert(false, "Image dimensions exceed the supported payload size.");
+            return .{}, false;
+        }
+
+        if size > 0 && image.data == null {
+            assert(false, "A nonempty image must have readable pixel storage.");
+            return .{}, false;
+        }
+
+        payload, copied := try_deep_copy_blob(image.data, size);
+        if !copied {
+            assert(false, "Could not allocate the serialized image payload.");
+            return .{}, false;
+        }
+
+        return payload, true;
+    }
+
+    deserialize_payload :: (image: *Image, blob_view: BlobView) -> bool {
+        if image == null {
+            assert(false, "Image payload deserialization requires an image.");
+            return false;
+        }
+
+        if image.data != null {
+            assert(false, "Release existing image pixel storage before deserializing a payload.");
+            return false;
+        }
+
+        size, valid := image_payload_size(image.*);
+        if !valid {
+            assert(false, "Image dimensions exceed the supported payload size.");
+            return false;
+        }
+
+        if blob_view.count != size || (size > 0 && blob_view.data == null) {
+            assert(false, "Image payload must contain exactly width * height * 4 readable bytes.");
+            return false;
+        }
+
+        if size == 0 {
+            image.width_over_height = 0.0;
+            return true;
+        }
+
+        pixels := cast(*u8) alloc(size);
+        if pixels == null {
+            assert(false, "Could not allocate deserialized image pixel storage.");
+            return false;
+        }
+
+        memcpy(pixels, blob_view.data, size);
+        image.data = pixels;
+        image.width_over_height = cast(float) image.width / cast(float) image.height;
         return true;
     }
 }
@@ -23,7 +96,11 @@ Image :: struct {
  * @param[in] color Straight sRGB color; alpha is coverage.
  */
 clear :: (image: *Image, color: Math.Color) {
-    assert(image != null, "Image must not be null.");
+    if image == null {
+        assert(false, "Image must not be null.");
+        return;
+    }
+
     if image.width == 0 || image.height == 0 {
         return;
     }
@@ -49,12 +126,25 @@ clear :: (image: *Image, color: Math.Color) {
  * @param[in] c2 Straight sRGB color of odd cells.
  */
 checker :: (image: *Image, cell_size: u32, c1: Math.Color = Math.Colors.WHITE, c2: Math.Color = Math.Colors.BLACK) {
-    assert(image != null, "Image must not be null.");
-    assert(cell_size > 0, "Checkerboard cell size must be positive.");
-    if image.width == 0 || image.height == 0 {
+    if image == null {
+        assert(false, "Image must not be null.");
         return;
     }
-    assert(image.data != null, "A nonempty image must have writable pixel storage.");
+
+    if cell_size <= 0 {
+        assert(false, "Checkerboard cell size must be positive.");
+        return;
+    }
+
+    if image.width == 0 || image.height == 0 {
+        // This one is not an assert intentionally
+        return;
+    }
+
+    if image.data == null {
+        assert(false, "A nonempty image must have writable pixel storage.");
+        return;
+    }
 
     pixel1 := image_color_to_pixel(c1);
     pixel2 := image_color_to_pixel(c2);
@@ -84,15 +174,24 @@ checker :: (image: *Image, cell_size: u32, c1: Math.Color = Math.Colors.WHITE, c
  * @pre Source and destination pixel storage must not overlap.
  */
 write_one_image_into_another :: (dst: *Image, x: u32, y: u32, src: Image) {
-    assert(dst != null, "Destination image must not be null.");
-    if (x >= dst.width ||
-        y >= dst.height ||
-        src.width == 0 ||
-        src.height == 0) {
+    if dst == null {
+        assert(false, "Destination image must not be null.");
         return;
     }
-    assert(dst.data != null, "A nonempty destination image must have writable pixel storage.");
-    assert(src.data != null, "A nonempty source image must have readable pixel storage.");
+
+    if (x >= dst.width || y >= dst.height || src.width == 0 || src.height == 0) {
+        return;
+    }
+
+    if dst.data == null {
+        assert(false, "A nonempty destination image must have writable pixel storage.");
+        return;
+    }
+
+    if src.data == null {
+        assert(false, "A nonempty source image must have readable pixel storage.");
+        return;
+    }
 
     // Subtract only after the bounds check, avoiding overflow from x + src.width.
     copy_width := min(src.width, dst.width - x);
@@ -119,6 +218,16 @@ write_one_image_into_another :: (dst: *Image, x: u32, y: u32, src: Image) {
 
 #scope_file
 Math :: #import "my-jai-math";
+
+IMAGE_BYTES_PER_PIXEL :: 4;
+
+image_payload_size :: (image: Image) -> s64, bool {
+    pixel_count := cast(u64) image.width * image.height;
+    if pixel_count > cast(u64) Math.S32_MAX / IMAGE_BYTES_PER_PIXEL {
+        return 0, false;
+    }
+    return cast(s64) pixel_count * IMAGE_BYTES_PER_PIXEL, true;
+}
 
 image_color_to_pixel :: (color: Math.Color) -> Math.Color {
     linear := Math.srgb_to_linear_accurate(Math.get_float_representation(color));

@@ -13,3 +13,18 @@
 [submodule "my-jai-curve"]
 	path = my-jai-curve
 	url = https://github.com/gorevojd/my-jai-curve.git
+[submodule "my-jai-batcher"]
+	path = my-jai-batcher
+	url = https://github.com/gorevojd/my-jai-batcher.git
+[submodule "my-jai-config"]
+	path = my-jai-config
+	url = https://github.com/gorevojd/my-jai-config.git
+[submodule "my-jai-events"]
+	path = my-jai-events
+	url = https://github.com/gorevojd/my-jai-events.git
+[submodule "my-jai-reflection"]
+	path = my-jai-reflection
+	url = https://github.com/gorevojd/my-jai-reflection.git
+[submodule "my-jai-serializer"]
+	path = my-jai-serializer
+	url = https://github.com/gorevojd/my-jai-serializer.git
