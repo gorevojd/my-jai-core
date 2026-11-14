@@ -1,6 +1,7 @@
-using MyName :: #import "MyBasic/MyName";
-using MyHashSet :: #import "MyBasic/MyHashSet";
-using MyBlob :: #import "MyBasic/MyBlob";
+using MyName :: #import "my-jai-name";
+using MyHashSet :: #import "my-jai-hash-set";
+using MyBlob :: #import "my-jai-blob";
+using MyCurve :: #import "my-jai-curve";
 
 #load "string_utils.jai";
 #load "image.jai";

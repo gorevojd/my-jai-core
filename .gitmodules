@@ -1,15 +1,15 @@
-[submodule "MyHashSet"]
-	path = MyHashSet
+[submodule "my-jai-hash-set"]
+	path = my-jai-hash-set
 	url = https://github.com/gorevojd/my-jai-hash-set.git
-[submodule "MyName"]
-	path = MyName
+[submodule "my-jai-name"]
+	path = my-jai-name
 	url = https://github.com/gorevojd/my-jai-name.git
-[submodule "MyBlob"]
-	path = MyBlob
+[submodule "my-jai-blob"]
+	path = my-jai-blob
 	url = https://github.com/gorevojd/my-jai-blob.git
-[submodule "MyMath"]
-	path = MyMath
+[submodule "my-jai-math"]
+	path = my-jai-math
 	url = https://github.com/gorevojd/my-jai-math.git
-[submodule "MyCurve"]
-	path = MyCurve
+[submodule "my-jai-curve"]
+	path = my-jai-curve
 	url = https://github.com/gorevojd/my-jai-curve.git

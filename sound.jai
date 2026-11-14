@@ -100,7 +100,7 @@ free_sound :: (sound: *Sound) {
 }
 
 #scope_file
-Math :: #import "MyBasic/MyMath";
+Math :: #import "my-jai-math";
 
 // Keep frame indices exactly representable in float64 and byte counts in s64.
 MAX_RESAMPLE_FRAMES :: 0x001fffffffffffff;

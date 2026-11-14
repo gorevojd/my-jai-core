@@ -118,7 +118,7 @@ write_one_image_into_another :: (dst: *Image, x: u32, y: u32, src: Image) {
 }
 
 #scope_file
-Math :: #import "MyBasic/MyMath";
+Math :: #import "my-jai-math";
 
 image_color_to_pixel :: (color: Math.Color) -> Math.Color {
     linear := Math.srgb_to_linear_accurate(Math.get_float_representation(color));
