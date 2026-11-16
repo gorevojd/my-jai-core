@@ -21,6 +21,7 @@ Jai standard library: `Basic`, `Hash_Table`.
 ```
 
 Add the directory containing my-jai-core and my-jai-core itself to the compiler's
-module search path. In PacCodex these are `Src/Modules` and `Src/Modules/my-jai-core`.
+module search path. For example, a checkout at `modules/my-jai-core` needs
+`modules` and `modules/my-jai-core` on that path.
 Dependencies are bundled as Git submodules of my-jai-core; initialize them with
 `git submodule update --init --recursive`. See their READMEs for dependency details.
