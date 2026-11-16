@@ -1,5 +1,4 @@
 #scope_export
-// Maps own their table storage; handles borrow assets from the sampling manager.
 CurveCollection :: struct {
     float_curves: Name_Table(Asset_Handle(Float_Curve));
     vec2_curves: Name_Table(Asset_Handle(Vec2_Curve));
@@ -38,42 +37,41 @@ sample_vec4 :: (ccl: CurveCollection, name: Name, time: float, default: Math.Vec
 
 /** @brief Returns the stored float handle, or an empty handle if absent; does not resolve, load or retain it. */
 get_float_curve :: (ccl: CurveCollection, curve_name: Name) -> Asset_Handle(Float_Curve) {
-    return get_curve_internal(ccl.float_curves, curve_name);
+    return get_curve_internal(ccl.float_curves, curve_name, float);
 }
 
 /** @brief Returns the stored Vec2 handle, or an empty handle if absent; does not resolve, load or retain it. */
 get_vec2_curve :: (ccl: CurveCollection, curve_name: Name) -> Asset_Handle(Vec2_Curve) {
-    return get_curve_internal(ccl.vec2_curves, curve_name);
+    return get_curve_internal(ccl.vec2_curves, curve_name, Math.Vec2);
 }
 
 /** @brief Returns the stored Vec3 handle, or an empty handle if absent; does not resolve, load or retain it. */
 get_vec3_curve :: (ccl: CurveCollection, curve_name: Name) -> Asset_Handle(Vec3_Curve) {
-    return get_curve_internal(ccl.vec3_curves, curve_name);
+    return get_curve_internal(ccl.vec3_curves, curve_name, Math.Vec3);
 }
 
 /** @brief Returns the stored Vec4 handle, or an empty handle if absent; does not resolve, load or retain it. */
 get_vec4_curve :: (ccl: CurveCollection, curve_name: Name) -> Asset_Handle(Vec4_Curve) {
-    return get_curve_internal(ccl.vec4_curves, curve_name);
+    return get_curve_internal(ccl.vec4_curves, curve_name, Math.Vec4);
 }
 
 #scope_file
-#import "MyAssets";
 #import "Hash_Table";
 Math :: #import "my-jai-math";
 
-get_curve_internal :: (curves: Name_Table($T), name: Name) -> T {
+get_curve_internal :: (curves: Name_Table($Handle), name: Name, $T: Type) -> Handle {
+    #assert Handle == Asset_Handle(CurveBase(T));
     found, handle := table_find(*curves.table, name);
     if !found {
-        invalid: T;
+        invalid: Handle;
         return invalid;
     }
 
     return handle;
 }
 
-sample_internal :: (curves: Name_Table($Handle), name: Name, time: float, default: $T) -> T {
-    #assert Handle == Asset_Handle(CurveBase(T));
-    handle := get_curve_internal(curves, name);
+sample_internal :: (curves: Name_Table($Handle), name: Name, time: float, default: $T/AllowedCurveValueTypes) -> T {
+    handle := get_curve_internal(curves, name, T);
     curve := get(global_asset_manager, handle);
     if curve == null {
         return default;

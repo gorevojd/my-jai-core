@@ -2,6 +2,7 @@ using MyName :: #import "my-jai-name";
 using MyHashSet :: #import "my-jai-hash-set";
 using MyBlob :: #import "my-jai-blob";
 using MyCurve :: #import "my-jai-curve";
+using MyAssets :: #import "MyAssets";
 
 #load "string_utils.jai";
 #load "image.jai";
