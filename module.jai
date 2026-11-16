@@ -7,6 +7,7 @@ using MyCurve :: #import "my-jai-curve";
 #load "image.jai";
 #load "sound.jai";
 #load "name_set.jai";
+#load "curve_collection.jai";
 
 /**
  * @brief Copies a string, returning false before copying if allocation fails.
